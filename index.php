@@ -68,6 +68,9 @@
             axios.post(`${API}?action=check_auth`).then(res => {
                 setCsrf(res.data.csrf_token);
                 if (res.data.isAuthenticated) redirectUser(res.data.user.role);
+            }).catch(() => {
+                // Keep the public login screen usable when the API is unavailable.
+                setView('login');
             });
         }, []);
 
@@ -340,8 +343,8 @@
                     const res = await apiCall('login', form);
                     if(res.data.success) redirectUser(res.data.data.role);
                 } catch(e) { 
-                    setErr(e.response?.data?.message || 'Authentication Failed'); 
-                    axios.post(`${API}?action=check_auth`).then(r => setCsrf(r.data.csrf_token));
+                    setErr(e.response?.data?.message || 'Authentication service is unavailable. Please verify the deployment and database configuration.');
+                    axios.post(`${API}?action=check_auth`).then(r => setCsrf(r.data.csrf_token)).catch(() => {});
                 } finally {
                     setLoading(false);
                 }
